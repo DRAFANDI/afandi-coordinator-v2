@@ -649,18 +649,92 @@ const STATUSES = {
 const NO_SHOW_REASONS = ['ما رد', 'أجّل', 'غير مهتم', 'ذهب لمكان ثاني', 'سعر مرتفع', 'ظروف']
 const CAME_NO_REASONS = ['السعر مرتفع', 'يحتاج وقت', 'خايف', 'تأجيل', 'ذهب لمكان ثاني', 'أخرى']
 
+// ── SUPABASE CONFIG ────────────────────────────────────
+const SUPA_URL = 'https://glhteebazcnfuifuiubn.supabase.co'
+const SUPA_KEY = 'sb_publishable_rfGhFWO1nO6nVU0I614aEQ_icHrun-6'
+
+async function supaFetch(path, opts = {}) {
+  const res = await fetch(SUPA_URL + path, {
+    ...opts,
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || '',
+      ...(opts.headers || {})
+    }
+  })
+  if (!res.ok) {
+    const err = await res.text()
+    console.error('Supabase error:', err)
+    return null
+  }
+  const text = await res.text()
+  return text ? JSON.parse(text) : null
+}
+
 let clients = []
 let openCardId = null
 let activeTab = 'all'
 
-function load() {
+async function load() {
   try {
+    const data = await supaFetch('/rest/v1/clients?order=created.desc')
+    if (data) {
+      clients = data.map(r => ({
+        id:           r.id,
+        name:         r.name,
+        phone:        r.phone || '',
+        service:      r.service || '',
+        notes:        r.notes || '',
+        status:       r.status || 'new',
+        reason:       r.reason || '',
+        followupNotes: r.followup_notes || [],
+        created:      new Date(r.created).getTime()
+      }))
+    } else {
+      // fallback to localStorage
+      clients = JSON.parse(localStorage.getItem('afandi_clients_v2') || '[]')
+    }
+  } catch(e) {
     clients = JSON.parse(localStorage.getItem('afandi_clients_v2') || '[]')
-  } catch(e) { clients = [] }
+  }
 }
 
-function save() {
+async function save() {
+  // also keep localStorage as backup
   try { localStorage.setItem('afandi_clients_v2', JSON.stringify(clients)) } catch(e) {}
+}
+
+async function saveToSupabase(client, isNew) {
+  const row = {
+    id:             client.id,
+    name:           client.name,
+    phone:          client.phone || '',
+    service:        client.service || '',
+    notes:          client.notes || '',
+    status:         client.status || 'new',
+    reason:         client.reason || '',
+    followup_notes: client.followupNotes || [],
+    created:        new Date(client.created).toISOString()
+  }
+  if (isNew) {
+    await supaFetch('/rest/v1/clients', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: JSON.stringify(row)
+    })
+  } else {
+    await supaFetch('/rest/v1/clients?id=eq.' + client.id, {
+      method: 'PATCH',
+      prefer: 'return=minimal',
+      body: JSON.stringify(row)
+    })
+  }
+}
+
+async function deleteFromSupabase(id) {
+  await supaFetch('/rest/v1/clients?id=eq.' + id, { method: 'DELETE' })
 }
 
 function nextId() {
@@ -840,6 +914,7 @@ function setStatus(id, status) {
   if (status !== 'followup') c.followupNote = ''
   openCardId = id
   save()
+  saveToSupabase(c, false)
   renderAll()
   // Focus follow-up note if just selected followup
   if (status === 'followup') {
@@ -874,6 +949,7 @@ function saveFollowupNote(id) {
   }
   c.followupNotes.push({ text: newNote, ts: Date.now() })
   save()
+  saveToSupabase(c, false)
   const btn = document.getElementById('fu-btn-' + id)
   if (btn) {
     btn.textContent = '✓ تم'
@@ -887,6 +963,7 @@ function setReason(id, reason) {
   if (!c) return
   c.reason = c.reason === reason ? '' : reason
   save()
+  saveToSupabase(c, false)
   renderAll()
 }
 
@@ -895,6 +972,7 @@ function deleteClient(id) {
   clients = clients.filter(c => c.id !== id)
   openCardId = null
   save()
+  deleteFromSupabase(id)
   renderAll()
 }
 
@@ -951,27 +1029,29 @@ function saveClient() {
       c.phone   = document.getElementById('f-phone').value.trim()
       c.service = document.getElementById('f-service').value
       c.notes   = document.getElementById('f-notes').value.trim()
+      save()
+      saveToSupabase(c, false)
     }
-    save()
     closeSheet()
     renderAll()
     return
   }
 
   // NEW client
-  clients.unshift({
-    id:          nextId(),
+  const newClient = {
+    id:           nextId(),
     name,
-    phone:       document.getElementById('f-phone').value.trim(),
-    service:     document.getElementById('f-service').value,
-    notes:       document.getElementById('f-notes').value.trim(),
-    status:      'new',
-    reason:      '',
-    followupNote:'',
-    created:     Date.now(),
-  })
-
+    phone:        document.getElementById('f-phone').value.trim(),
+    service:      document.getElementById('f-service').value,
+    notes:        document.getElementById('f-notes').value.trim(),
+    status:       'new',
+    reason:       '',
+    followupNotes:[],
+    created:      Date.now(),
+  }
+  clients.unshift(newClient)
   save()
+  saveToSupabase(newClient, true)
   closeSheet()
   switchTab('all')
   renderAll()
@@ -990,6 +1070,5 @@ function switchTab(tab) {
 }
 
 // ── INIT ───────────────────────────────────────────────
-load()
-renderAll()
+load().then(() => renderAll())
 </script>
