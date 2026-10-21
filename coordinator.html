@@ -1,0 +1,1120 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>منسقة أفندي</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+
+<style>
+  /* ── TOKENS ─────────────────────────────────────── */
+  /* Layout: single-column mobile card list, sticky header */
+  :root {
+    --bg:        #F7F5F2;
+    --surface:   #FFFFFF;
+    --border:    #E8E4DE;
+    --muted:     #A09484;
+    --text:      #2A2118;
+    --text-sub:  #6B5E52;
+
+    --green:     #3D8B5A;
+    --green-bg:  #EAF5EE;
+    --yellow:    #B07D2A;
+    --yellow-bg: #FBF4E6;
+    --red:       #B5404A;
+    --red-bg:    #FAEAEA;
+    --grey:      #6B6560;
+    --grey-bg:   #F0EDEA;
+    --blue:      #3A6FA8;
+    --blue-bg:   #EAF0F8;
+    --purple:    #6B4FA8;
+    --purple-bg: #F0EAFA;
+
+    --radius:    14px;
+    --font:      'IBM Plex Sans Arabic', system-ui, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #1A1714;
+      --surface:   #242018;
+      --border:    #38332C;
+      --muted:     #7A6E64;
+      --text:      #F0EBE4;
+      --text-sub:  #A0948A;
+      --green-bg:  #1A2E20;
+      --yellow-bg: #2A2010;
+      --red-bg:    #2A1418;
+      --grey-bg:   #252220;
+      --blue-bg:   #141E2A;
+      --purple-bg: #1E1428;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #1A1714;
+    --surface:   #242018;
+    --border:    #38332C;
+    --muted:     #7A6E64;
+    --text:      #F0EBE4;
+    --text-sub:  #A0948A;
+    --green-bg:  #1A2E20;
+    --yellow-bg: #2A2010;
+    --red-bg:    #2A1418;
+    --grey-bg:   #252220;
+    --blue-bg:   #141E2A;
+    --purple-bg: #1E1428;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    direction: rtl;
+    font-size: 15px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* ── LAYOUT ─────────────────────────────────────── */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    background: var(--surface);
+    z-index: 100;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  /* ── HEADER ─────────────────────────────────────── */
+  header {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 50;
+    padding: 14px max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px));
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .header-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .header-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── TABS ────────────────────────────────────────── */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    padding: 0 max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-sub);
+    font-family: var(--font);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .tab-btn.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+
+  /* ── SCROLL AREA ─────────────────────────────────── */
+  main {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px max(16px, env(safe-area-inset-right, 0px)) 100px max(16px, env(safe-area-inset-left, 0px));
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .inner { max-width: 600px; margin: 0 auto; }
+
+  /* ── FAB ─────────────────────────────────────────── */
+  #fab {
+    position: fixed;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    left: max(20px, env(safe-area-inset-left, 0px));
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 40;
+    transition: transform .15s;
+  }
+  #fab:active { transform: scale(.93); }
+
+  /* ── ADD FORM SHEET ──────────────────────────────── */
+  #sheet-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 200;
+  }
+  #sheet-overlay.open { display: block; }
+
+  #sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 0 0 env(safe-area-inset-bottom, 0px);
+    z-index: 201;
+    transform: translateY(100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  #sheet.open { transform: translateY(0); }
+
+  .sheet-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 20px;
+  }
+
+  .sheet-title {
+    font-size: 17px;
+    font-weight: 600;
+    padding: 0 20px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .field {
+    padding: 0 20px;
+    margin-bottom: 14px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: var(--font);
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
+    -webkit-appearance: none;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--text);
+  }
+  .field textarea { min-height: 80px; resize: vertical; }
+
+  .sheet-actions {
+    padding: 16px 20px 20px;
+    display: flex;
+    gap: 10px;
+  }
+
+  /* ── BUTTONS ─────────────────────────────────────── */
+  .btn-primary {
+    flex: 1;
+    padding: 14px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: 12px;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .btn-primary:active { opacity: .8; }
+
+  .btn-ghost {
+    padding: 14px 20px;
+    background: var(--border);
+    color: var(--text-sub);
+    border: none;
+    border-radius: 12px;
+    font-family: var(--font);
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  /* ── CLIENT CARD ─────────────────────────────────── */
+  .client-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .card-top {
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+  }
+
+  .card-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-sub);
+    flex-shrink: 0;
+  }
+
+  .card-info { flex: 1; min-width: 0; }
+
+  .card-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .card-service {
+    font-size: 12px;
+    color: var(--text-sub);
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  .card-phone {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .card-note {
+    font-size: 12px;
+    color: var(--text-sub);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .card-expand {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--muted);
+    padding: 4px;
+    transition: transform .2s;
+  }
+  .card-expand.open { transform: rotate(180deg); }
+
+  /* ── STATUS ACTIONS ──────────────────────────────── */
+  .card-actions {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 14px 16px;
+    gap: 8px;
+    flex-direction: column;
+  }
+  .card-actions.open { display: flex; }
+
+  .actions-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 4px;
+  }
+
+  .action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .action-btn {
+    padding: 12px 10px;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: opacity .15s;
+    text-align: right;
+    line-height: 1.3;
+  }
+  .action-btn:active { opacity: .75; }
+  .action-btn .icon { font-size: 18px; flex-shrink: 0; }
+
+  .action-btn.green  { background: var(--green-bg);  color: var(--green);  border-color: var(--green-bg);  }
+  .action-btn.yellow { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow-bg); }
+  .action-btn.red    { background: var(--red-bg);    color: var(--red);    border-color: var(--red-bg);    }
+  .action-btn.grey   { background: var(--grey-bg);   color: var(--grey);   border-color: var(--grey-bg);   }
+  .action-btn.blue   { background: var(--blue-bg);   color: var(--blue);   border-color: var(--blue-bg);   }
+  .action-btn.purple { background: var(--purple-bg); color: var(--purple); border-color: var(--purple-bg); }
+
+  .action-btn.active-state {
+    border-color: currentColor;
+    font-weight: 600;
+  }
+
+  /* ── REASON PICKER ───────────────────────────────── */
+  .reason-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .reason-chip {
+    padding: 7px 13px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: var(--font);
+    font-size: 12px;
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .reason-chip:active { opacity: .7; }
+  .reason-chip.selected {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+
+  /* ── EMPTY STATE ─────────────────────────────────── */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty .empty-title { font-size: 16px; font-weight: 500; color: var(--text-sub); margin-bottom: 6px; }
+  .empty .empty-sub { font-size: 13px; line-height: 1.6; }
+
+  /* ── FOLLOW-UP VIEW ──────────────────────────────── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 10px;
+    margin-top: 20px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* ── WHATSAPP COPY ───────────────────────────────── */
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    background: var(--green-bg);
+    color: var(--green);
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  /* ── STATS ───────────────────────────────────────── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 26px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-lbl {
+    font-size: 11px;
+    color: var(--muted);
+  }
+</style>
+
+<div id="app">
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="header-title">🦷 متابعة العملاء</div>
+        <div class="header-sub" id="header-count">جاري التحميل...</div>
+      </div>
+    </div>
+    <!-- TABS -->
+    <div class="tabs" style="margin-top:12px; padding-bottom:0; border-bottom:none;">
+      <button class="tab-btn active" onclick="switchTab('all')">الكل</button>
+      <button class="tab-btn" onclick="switchTab('followup')">📌 تحتاج متابعة</button>
+      <button class="tab-btn" onclick="switchTab('booked')">📅 مواعيد</button>
+      <button class="tab-btn" onclick="switchTab('done')">✅ انتهوا</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ALL CLIENTS -->
+    <div id="view-all" class="view active">
+      <div class="inner" id="list-all"></div>
+    </div>
+
+    <!-- FOLLOW UP -->
+    <div id="view-followup" class="view">
+      <div class="inner" id="list-followup"></div>
+    </div>
+
+    <!-- BOOKED -->
+    <div id="view-booked" class="view">
+      <div class="inner" id="list-booked"></div>
+    </div>
+
+    <!-- DONE -->
+    <div id="view-done" class="view">
+      <div class="inner" id="list-done"></div>
+    </div>
+  </main>
+</div>
+
+<!-- FAB -->
+<button id="fab" onclick="openSheet()" title="عميل جديد">+</button>
+
+<!-- SHEET OVERLAY -->
+<div id="sheet-overlay" onclick="closeSheet()"></div>
+
+<!-- ADD SHEET -->
+<div id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">عميل جديد</div>
+
+  <div class="field">
+    <label>الاسم</label>
+    <input id="f-name" type="text" placeholder="اسم العميل" autocomplete="off">
+  </div>
+
+  <div class="field">
+    <label>رقم الواتساب</label>
+    <input id="f-phone" type="tel" placeholder="05XXXXXXXX" autocomplete="off" inputmode="tel">
+  </div>
+
+  <div class="field">
+    <label>الخدمة</label>
+    <select id="f-service">
+      <option value="">اختر الخدمة...</option>
+      <option>قشور إيماكس</option>
+      <option>قشور فيلدسباثيك</option>
+      <option>قشور الترا ثن إيماكس</option>
+      <option>حشوات تجميلية</option>
+      <option>تبييض الليزر</option>
+      <option>سحب عصب</option>
+      <option>تلبيسة</option>
+      <option>تنظيف</option>
+      <option>قوالب</option>
+      <option>خلع</option>
+      <option>قص لثة بالليزر</option>
+      <option>توريد لثة بالليزر</option>
+      <option>استشارة</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>ملاحظات (اختياري)</label>
+    <textarea id="f-notes" placeholder="مثال: سألت عن السعر، من إنستقرام..."></textarea>
+  </div>
+
+  <div class="sheet-actions">
+    <button class="btn-primary" onclick="saveClient()">حفظ ✓</button>
+    <button class="btn-ghost" onclick="closeSheet()">إلغاء</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ───────────────────────────────────────────────
+const STATUSES = {
+  new:        { label: 'جديد',            color: 'grey',   icon: '🆕' },
+  followup:   { label: 'يحتاج متابعة',    color: 'yellow', icon: '📌' },
+  booked:     { label: 'حجز موعد',        color: 'blue',   icon: '📅' },
+  came_done:  { label: 'جاء واشتغل ✅',   color: 'green',  icon: '✅' },
+  came_no:    { label: 'جاء وما اشتغل',   color: 'purple', icon: '💬' },
+  no_show:    { label: 'ما حضر',          color: 'red',    icon: '🚫' },
+  closed:     { label: 'مغلق',            color: 'grey',   icon: '⚫' },
+}
+
+const NO_SHOW_REASONS = ['ما رد', 'أجّل', 'غير مهتم', 'ذهب لمكان ثاني', 'سعر مرتفع', 'ظروف']
+const CAME_NO_REASONS = ['السعر مرتفع', 'يحتاج وقت', 'خايف', 'تأجيل', 'ذهب لمكان ثاني', 'أخرى']
+
+// ── SUPABASE CONFIG ────────────────────────────────────
+const SUPA_URL = 'https://glhteebazcnfuifuiubn.supabase.co'
+const SUPA_KEY = 'sb_publishable_rfGhFWO1nO6nVU0I614aEQ_icHrun-6'
+
+async function supaFetch(path, opts = {}) {
+  const res = await fetch(SUPA_URL + path, {
+    ...opts,
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || '',
+      ...(opts.headers || {})
+    }
+  })
+  if (!res.ok) {
+    const err = await res.text()
+    console.error('Supabase error:', err)
+    return null
+  }
+  const text = await res.text()
+  return text ? JSON.parse(text) : null
+}
+
+let clients = []
+let openCardId = null
+let activeTab = 'all'
+
+async function load() {
+  try {
+    const data = await supaFetch('/rest/v1/clients?order=created.desc')
+    if (data) {
+      clients = data.map(r => ({
+        id:           r.id,
+        name:         r.name,
+        phone:        r.phone || '',
+        service:      r.service || '',
+        notes:        r.notes || '',
+        status:       r.status || 'new',
+        reason:       r.reason || '',
+        followupNotes: r.followup_notes || [],
+        created:      new Date(r.created).getTime()
+      }))
+    } else {
+      // fallback to localStorage
+      clients = JSON.parse(localStorage.getItem('afandi_clients_v2') || '[]')
+    }
+  } catch(e) {
+    clients = JSON.parse(localStorage.getItem('afandi_clients_v2') || '[]')
+  }
+}
+
+async function save() {
+  // also keep localStorage as backup
+  try { localStorage.setItem('afandi_clients_v2', JSON.stringify(clients)) } catch(e) {}
+}
+
+async function saveToSupabase(client, isNew) {
+  const row = {
+    id:             client.id,
+    name:           client.name,
+    phone:          client.phone || '',
+    service:        client.service || '',
+    notes:          client.notes || '',
+    status:         client.status || 'new',
+    reason:         client.reason || '',
+    followup_notes: client.followupNotes || [],
+    created:        new Date(client.created).toISOString()
+  }
+  if (isNew) {
+    await supaFetch('/rest/v1/clients', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: JSON.stringify(row)
+    })
+  } else {
+    await supaFetch('/rest/v1/clients?id=eq.' + client.id, {
+      method: 'PATCH',
+      prefer: 'return=minimal',
+      body: JSON.stringify(row)
+    })
+  }
+}
+
+async function deleteFromSupabase(id) {
+  await supaFetch('/rest/v1/clients?id=eq.' + id, { method: 'DELETE' })
+}
+
+function nextId() {
+  return Date.now()
+}
+
+// ── RENDER ─────────────────────────────────────────────
+function renderAll() {
+  const total = clients.filter(c => c.status !== 'closed').length
+  const followup = clients.filter(c => c.status === 'followup').length
+  document.getElementById('header-count').textContent =
+    total + ' عميل نشط' + (followup > 0 ? ' · ' + followup + ' تحتاج متابعة 📌' : '')
+
+  renderView('all',      clients)
+  renderView('followup', clients.filter(c => c.status === 'followup'))
+  renderView('booked',   clients.filter(c => c.status === 'booked'))
+  renderView('done',     clients.filter(c => ['came_done','came_no','no_show','closed'].includes(c.status)))
+}
+
+function renderView(id, list) {
+  const el = document.getElementById('list-' + id)
+  if (!list.length) {
+    el.innerHTML = emptyHTML(id)
+    return
+  }
+  // Sort: followup + booked first, then by date desc
+  const sorted = [...list].sort((a, b) => {
+    const priority = (c) => c.status === 'followup' ? 0 : c.status === 'booked' ? 1 : 2
+    if (priority(a) !== priority(b)) return priority(a) - priority(b)
+    return b.created - a.created
+  })
+  el.innerHTML = sorted.map(c => cardHTML(c)).join('')
+}
+
+function emptyHTML(tab) {
+  const msgs = {
+    all:      ['🌿', 'ما في عملاء بعد', 'اضغط + لإضافة أول عميل'],
+    followup: ['📌', 'ما في متابعات', 'ممتاز — كل شيء واضح'],
+    booked:   ['📅', 'ما في مواعيد محجوزة', ''],
+    done:     ['✅', 'ما في سجلات', ''],
+  }
+  const [icon, title, sub] = msgs[tab] || ['', '', '']
+  return `<div class="empty">
+    <div class="empty-icon">${icon}</div>
+    <div class="empty-title">${title}</div>
+    ${sub ? `<div class="empty-sub">${sub}</div>` : ''}
+  </div>`
+}
+
+function cardHTML(c) {
+  const st = STATUSES[c.status] || STATUSES.new
+  const isOpen = openCardId === c.id
+  const initials = (c.name || '?').split(' ').map(w => w[0]).join('').slice(0,2)
+
+  // Follow-up note section
+  let followupSection = ''
+  if (isOpen && c.status === 'followup') {
+    const notes = Array.isArray(c.followupNotes) ? c.followupNotes : (c.followupNote ? [{text: c.followupNote, ts: c.created||Date.now()}] : [])
+    followupSection = `
+      <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:500;">سجل المتابعة:</div>
+        ${notes.length ? `<div style="margin-bottom:10px;display:flex;flex-direction:column;gap:6px;">${notes.slice().reverse().map(n => `
+          <div style="background:var(--yellow-bg);border:1.5px solid var(--yellow);border-radius:9px;padding:8px 12px;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px;">🕐 ${fmtDate(n.ts)}</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.5;">${esc(n.text)}</div>
+          </div>`).join('')}</div>` : ''}
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <textarea
+            id="fu-note-${c.id}"
+            placeholder="أضف ملاحظة جديدة..."
+            style="flex:1;padding:8px 10px;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;font-family:var(--font);font-size:13px;color:var(--text);resize:none;height:44px;outline:none;"
+          ></textarea>
+          <button onclick="saveFollowupNote(${c.id})" id="fu-btn-${c.id}" style="padding:9px 14px;background:var(--yellow);color:#fff;border:none;border-radius:9px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">إضافة +</button>
+        </div>
+      </div>`
+  }
+
+  // Reason section (for came_no or no_show)
+  let reasonSection = ''
+  if (isOpen && (c.status === 'no_show' || c.status === 'came_no')) {
+    const reasons = c.status === 'no_show' ? NO_SHOW_REASONS : CAME_NO_REASONS
+    reasonSection = `
+      <div class="reason-row">
+        <div style="width:100%;font-size:11px;color:var(--muted);margin-bottom:4px;">السبب:</div>
+        ${reasons.map(r => `
+          <button class="reason-chip ${c.reason === r ? 'selected' : ''}"
+            onclick="setReason(${c.id},'${r}')">${r}</button>
+        `).join('')}
+      </div>`
+  }
+
+  return `
+  <div class="client-card" id="card-${c.id}">
+    <div class="card-top" onclick="toggleCard(${c.id})">
+      <div class="card-avatar">${initials}</div>
+      <div class="card-info">
+        <div class="card-name">${esc(c.name)}</div>
+        <div class="card-meta">
+          ${c.service ? `<span class="card-service">${esc(c.service)}</span>` : ''}
+          <span class="status-badge" style="background:var(--${st.color}-bg);color:var(--${st.color});">
+            ${st.icon} ${st.label}
+          </span>
+        </div>
+        ${c.phone ? `<div class="card-phone">📱 ${esc(c.phone)}</div>` : ''}
+        ${c.notes ? `<div class="card-note">${esc(c.notes)}</div>` : ''}
+        ${c.reason ? `<div class="card-note" style="color:var(--muted);">السبب: ${esc(c.reason)}</div>` : ''}
+      </div>
+      <span class="card-expand ${isOpen ? 'open' : ''}">▼</span>
+    </div>
+
+    <div class="card-actions ${isOpen ? 'open' : ''}">
+      <div class="actions-label">تغيير الحالة</div>
+      <div class="action-grid">
+        <button class="action-btn yellow ${c.status==='followup'?'active-state':''}"
+          onclick="setStatus(${c.id},'followup')">
+          <span class="icon">📌</span>يحتاج متابعة
+        </button>
+        <button class="action-btn blue ${c.status==='booked'?'active-state':''}"
+          onclick="setStatus(${c.id},'booked')">
+          <span class="icon">📅</span>حجز موعد
+        </button>
+        <button class="action-btn green ${c.status==='came_done'?'active-state':''}"
+          onclick="setStatus(${c.id},'came_done')">
+          <span class="icon">✅</span>جاء واشتغل
+        </button>
+        <button class="action-btn purple ${c.status==='came_no'?'active-state':''}"
+          onclick="setStatus(${c.id},'came_no')">
+          <span class="icon">💬</span>جاء وما اشتغل
+        </button>
+        <button class="action-btn red ${c.status==='no_show'?'active-state':''}"
+          onclick="setStatus(${c.id},'no_show')">
+          <span class="icon">🚫</span>ما حضر للموعد
+        </button>
+        <button class="action-btn grey ${c.status==='closed'?'active-state':''}"
+          onclick="setStatus(${c.id},'closed')">
+          <span class="icon">⚫</span>مغلق
+        </button>
+      </div>
+
+      ${followupSection}
+      ${reasonSection}
+
+      ${c.phone ? `
+      <button class="copy-btn" style="background:var(--green-bg);color:var(--green);border-color:var(--green-bg);" onclick="openWA(${c.id})">
+        📲 واتساب
+      </button>` : ''}
+
+      <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;display:flex;gap:8px;align-items:center;justify-content:space-between;">
+        <button onclick="startEdit(${c.id})"
+          style="padding:8px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;color:var(--text-sub);font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;">
+          ✏️ تعديل البيانات
+        </button>
+        <button onclick="deleteClient(${c.id})"
+          style="padding:8px 12px;background:transparent;border:none;color:var(--muted);font-family:var(--font);font-size:12px;cursor:pointer;">
+          🗑 حذف
+        </button>
+      </div>
+    </div>
+  </div>`
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+// ── INTERACTIONS ───────────────────────────────────────
+function toggleCard(id) {
+  openCardId = openCardId === id ? null : id
+  renderAll()
+}
+
+function setStatus(id, status) {
+  const c = clients.find(x => x.id === id)
+  if (!c) return
+  c.status = status
+  c.reason = ''
+  if (status !== 'followup') c.followupNote = ''
+  openCardId = id
+  save()
+  saveToSupabase(c, false)
+  renderAll()
+  // Focus follow-up note if just selected followup
+  if (status === 'followup') {
+    setTimeout(() => {
+      const ta = document.getElementById('fu-note-' + id)
+      if (ta) ta.focus()
+    }, 50)
+  }
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts)
+  const days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت']
+  const day = days[d.getDay()]
+  const date = d.getDate() + '/' + (d.getMonth()+1)
+  const h = String(d.getHours()).padStart(2,'0')
+  const m = String(d.getMinutes()).padStart(2,'0')
+  return `${day} ${date} · ${h}:${m}`
+}
+
+function saveFollowupNote(id) {
+  const c = clients.find(x => x.id === id)
+  if (!c) return
+  const ta = document.getElementById('fu-note-' + id)
+  if (!ta) return
+  const newNote = ta.value.trim()
+  if (!newNote) return
+  // migrate old single note to array
+  if (!Array.isArray(c.followupNotes)) {
+    c.followupNotes = c.followupNote ? [{text: c.followupNote, ts: c.created||Date.now()}] : []
+    delete c.followupNote
+  }
+  c.followupNotes.push({ text: newNote, ts: Date.now() })
+  save()
+  saveToSupabase(c, false)
+  const btn = document.getElementById('fu-btn-' + id)
+  if (btn) {
+    btn.textContent = '✓ تم'
+    btn.style.background = 'var(--green)'
+  }
+  setTimeout(() => renderAll(), 700)
+}
+
+function setReason(id, reason) {
+  const c = clients.find(x => x.id === id)
+  if (!c) return
+  c.reason = c.reason === reason ? '' : reason
+  save()
+  saveToSupabase(c, false)
+  renderAll()
+}
+
+function deleteClient(id) {
+  if (!confirm('تأكيد حذف العميل؟')) return
+  clients = clients.filter(c => c.id !== id)
+  openCardId = null
+  save()
+  deleteFromSupabase(id)
+  renderAll()
+}
+
+function openWA(id) {
+  const c = clients.find(x => x.id === id)
+  if (!c || !c.phone) return
+  const name = c.name || 'عزيزي'
+  const service = c.service || 'الخدمة'
+  const reason = c.reason || ''
+  let msg = ''
+
+  if (c.status === 'new') {
+    msg = `السلام عليكم ${name}، شكراً لاهتمامك بعيادة أفندي 😊 متى يناسبك نحجز لك موعد استشارة؟`
+  } else if (c.status === 'followup') {
+    msg = `السلام عليكم ${name}، نتابع معك بخصوص ${service} — هل عندك أي استفسار؟ 🌟`
+  } else if (c.status === 'booked') {
+    msg = `تذكير بموعدك في عيادة أفندي 📅 نتطلع لرؤيتك ${name}!`
+  } else if (c.status === 'came_done') {
+    msg = `شكراً ${name} على ثقتك بعيادة أفندي 🙏 نتمنى لك نتيجة رائعة!`
+  } else if (c.status === 'came_no') {
+    if (reason === 'السعر مرتفع') {
+      msg = `السلام عليكم ${name}، يسعدنا إنك زرتنا 😊 نفهم إن السعر كان عامل — عندنا خيارات تقسيط مريحة لـ${service}، هل تودّ نشرحها لك؟`
+    } else if (reason === 'خايف') {
+      msg = `السلام عليكم ${name}، شكراً لزيارتك 😊 طبيعي تكون عندك تساؤلات — دكتور محمد يسعده يجاوب على أي استفسار قبل ما تقرر`
+    } else if (reason === 'يحتاج وقت' || reason === 'تأجيل') {
+      msg = `السلام عليكم ${name}، كان سعادتنا نشوفك 😊 لما تكون جاهز لـ${service} احنا هنا لك!`
+    } else if (reason === 'ذهب لمكان ثاني') {
+      msg = `السلام عليكم ${name}، يسعدنا إنك زرتنا 😊 لو احتجت رأي ثاني أو أي استفسار — احنا دائماً هنا`
+    } else {
+      msg = `السلام عليكم ${name}، كان سعادتنا نشوفك 😊 لو عندك أي سؤال أو قررت تكمل معنا — احنا هنا!`
+    }
+  } else if (c.status === 'no_show') {
+    if (reason === 'ما رد') {
+      msg = `السلام عليكم ${name}، حاولنا نتواصل معك بخصوص موعدك — هل كل شيء بخير؟ 😊`
+    } else if (reason === 'أجّل') {
+      msg = `السلام عليكم ${name}، لا مشكلة 😊 لما يناسبك نحجز موعد جديد لـ${service}`
+    } else if (reason === 'غير مهتم') {
+      msg = `السلام عليكم ${name}، نتمنى نكون عند حسن ظنك — لو احتجت أي شيء احنا هنا 🌟`
+    } else if (reason === 'سعر مرتفع') {
+      msg = `السلام عليكم ${name}، نفهم إن السعر مهم — عندنا خيارات تقسيط مريحة لـ${service}، هل تودّ نشرحها لك؟`
+    } else {
+      msg = `السلام عليكم ${name}، لاحظنا إنك ما تمكنت تحضر موعدك — هل تودّ نعيد الحجز؟`
+    }
+  } else if (c.status === 'closed') {
+    msg = `السلام عليكم ${name}، نتمنى نكون خدمناك بشكل جيد — يسعدنا نستقبلك مستقبلاً 🌟`
+  } else {
+    msg = `السلام عليكم ${name} 😊`
+  }
+
+  const phone = c.phone.replace(/\D/g, '')
+  const waPhone = phone.startsWith('0') ? '966' + phone.slice(1) : phone
+  window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`, '_blank')
+}
+
+// ── EDIT ──────────────────────────────────────────────
+let editingId = null
+
+function startEdit(id) {
+  const c = clients.find(x => x.id === id)
+  if (!c) return
+  editingId = id
+  document.getElementById('f-name').value    = c.name    || ''
+  document.getElementById('f-phone').value   = c.phone   || ''
+  document.getElementById('f-service').value = c.service || ''
+  document.getElementById('f-notes').value   = c.notes   || ''
+  document.querySelector('#sheet .sheet-title').textContent = 'تعديل البيانات'
+  document.querySelector('#sheet .btn-primary').textContent = 'حفظ التعديلات ✓'
+  openSheet()
+}
+
+// ── SHEET ──────────────────────────────────────────────
+function openSheet() {
+  document.getElementById('sheet-overlay').classList.add('open')
+  document.getElementById('sheet').classList.add('open')
+  setTimeout(() => document.getElementById('f-name').focus(), 350)
+}
+
+function closeSheet() {
+  document.getElementById('sheet-overlay').classList.remove('open')
+  document.getElementById('sheet').classList.remove('open')
+  document.getElementById('f-name').value    = ''
+  document.getElementById('f-phone').value   = ''
+  document.getElementById('f-service').value = ''
+  document.getElementById('f-notes').value   = ''
+  document.querySelector('#sheet .sheet-title').textContent    = 'عميل جديد'
+  document.querySelector('#sheet .btn-primary').textContent    = 'حفظ ✓'
+  editingId = null
+}
+
+function saveClient() {
+  const name = document.getElementById('f-name').value.trim()
+  if (!name) { document.getElementById('f-name').focus(); return }
+
+  if (editingId !== null) {
+    // UPDATE existing
+    const c = clients.find(x => x.id === editingId)
+    if (c) {
+      c.name    = name
+      c.phone   = document.getElementById('f-phone').value.trim()
+      c.service = document.getElementById('f-service').value
+      c.notes   = document.getElementById('f-notes').value.trim()
+      save()
+      saveToSupabase(c, false)
+    }
+    closeSheet()
+    renderAll()
+    return
+  }
+
+  // NEW client
+  const newClient = {
+    id:           nextId(),
+    name,
+    phone:        document.getElementById('f-phone').value.trim(),
+    service:      document.getElementById('f-service').value,
+    notes:        document.getElementById('f-notes').value.trim(),
+    status:       'new',
+    reason:       '',
+    followupNotes:[],
+    created:      Date.now(),
+  }
+  clients.unshift(newClient)
+  save()
+  saveToSupabase(newClient, true)
+  closeSheet()
+  switchTab('all')
+  renderAll()
+}
+
+// ── TABS ───────────────────────────────────────────────
+function switchTab(tab) {
+  activeTab = tab
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['all','followup','booked','done'][i] === tab)
+  })
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'))
+  document.getElementById('view-' + tab).classList.add('active')
+  openCardId = null
+  renderAll()
+}
+
+// ── INIT ───────────────────────────────────────────────
+load().then(() => renderAll())
+</script>
